@@ -686,26 +686,16 @@ void Plan::ComputePriorityList(BuildLog* build_log) {
       continue;
     Edge* e = it->first;
     edges.push_back(e);
-    //printf("in\n");
     set<Node*> ins; // protect against #308; also sanity
     for (size_t nit = 0; nit < e->inputs_.size(); ++nit) {
       Node* n = e->inputs_[nit];
       if (ins.count(n) == 0) {
-        //printf("%s %s\n", (*nit)->path().c_str(), e->rule().name().c_str());
         num_out_edges[n]++;
         ins.insert(n);
       }
     }
-    //printf("\n");
   }
 
-  if (false) {
-    for (map<Node*, int>::iterator it = num_out_edges.begin(),
-                                   end = num_out_edges.end();
-         it != end; ++it) {
-      printf("%s %d\n", it->first->path().c_str(), it->second);
-    }
-  }
 
   // Critical path scheduling.
   // 0. Assign costs to all edges, using:
@@ -733,17 +723,6 @@ void Plan::ComputePriorityList(BuildLog* build_log) {
   }
 
 
-  // Dump graph to stdout for debugging / prototyping.
-  if (false) {
-    for (vector<Edge*>::iterator it = edges.begin(), end = edges.end();
-         it != end; ++it) {
-      Edge* edge = *it;
-      Node* input = edge->inputs_[0];
-      Node* output = edge->outputs_[0];
-      printf("%s %s %d\n", input->path().c_str(), output->path().c_str(),
-             edge->run_time_ms_);
-    }
-  }
 
   // 1. Use backflow algorithm to compute critical times for all nodes, starting
   // from the destination nodes.
@@ -805,18 +784,6 @@ void Plan::ComputePriorityList(BuildLog* build_log) {
 
   // 2. Build priority list in decreasing order of critical times.
   sort(edges.begin(), edges.end(), EdgeCom);
-  if (true) {
-    printf("priority list: \n");
-    for (vector<Edge*>::iterator it = edges.begin(), end = edges.end();
-         it != end; ++it) {
-      Edge* edge = *it;
-      Node* input = edge->inputs_[0];
-      Node* output = edge->outputs_[0];
-      printf("%s %s crit %d edge %d\n", input->path().c_str(),
-             output->path().c_str(), edge->critical_time(),
-             edge->run_time_ms_);
-    }
-  }
   priority_list_ = list<Edge*>(edges.begin(), edges.end());
 }
 
