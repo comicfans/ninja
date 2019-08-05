@@ -321,7 +321,7 @@ void Plan::Reset() {
 
 bool Plan::AddTarget(Node* node, string* err) {
   targets_.push_back(node);
-  return AddSubTarget(node, NULL, err);
+  return AddSubTarget(node, NULL, err, NULL);
 }
 
 bool Plan::AddSubTarget(Node* node, Node* dependent, string* err,
@@ -665,6 +665,8 @@ void Plan::UnmarkDependents(Node* node, set<Node*>* dependents) {
       }
     }
   }
+}
+
 namespace {
 bool EdgeCom(const Edge* lhs, const Edge* rhs) {
   // Note: > to sort in decreasing order.
@@ -693,9 +695,9 @@ void Plan::ComputePriorityList(BuildLog* build_log) {
 
   vector<Edge*> edges;
   map<Node*, int> num_out_edges;
-  for (map<Edge*, bool>::iterator it = want_.begin(), end = want_.end();
+  for (map<Edge*, Want>::iterator it = want_.begin(), end = want_.end();
        it != end; ++it) {
-    if (!it->second)
+    if (it->second == kWantNothing)
       continue;
     Edge* e = it->first;
     edges.push_back(e);
